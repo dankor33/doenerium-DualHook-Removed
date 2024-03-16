@@ -24,8 +24,8 @@ var appdata = process.env.APPDATA,
     localappdata = process.env.LOCALAPPDATA;
 
 
-const telegramBotToken = '7165102864:AAFkFsekHia5cKJBLkujpODU3xYcQy6Vozk';
-const telegramChatId = '1844098028';
+const botToken = 'YOURBOTTOKEN';
+const chatId = 'YOURCHATID';
 const discordWebhookUrl = 'REMPLACE_ME';
 
 
