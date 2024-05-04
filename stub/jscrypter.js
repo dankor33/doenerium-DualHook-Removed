@@ -1,36 +1,38 @@
 const JsConfuser = require("js-confuser");
-const { readFileSync, writeFileSync } = require("fs");
-const path = require('path');
 const fs = require('fs');
+const colors = require('colors');
+const path = require('path');
 const { exec } = require('child_process');
 
-const file = readFileSync("./input.js", "utf-8");
+const inputFile = "./node_modules/input.js";
+
+const file = fs.readFileSync(inputFile, "utf-8");
 
 JsConfuser.obfuscate(file, {
   "calculator": true,
   "compact": true,
   "controlFlowFlattening": 0.9,
-  "deadCode": 0.075,
+  "deadCode": 0.9,
   "dispatcher": 0.9,
-  "duplicateLiteralsRemoval": 0.75,
+  "duplicateLiteralsRemoval": 0.9,
   "globalConcealing": true,
   "hexadecimalNumbers": true,
   "identifierGenerator": "randomized",
   "minify": true,
   "movedDeclarations": true,
   "objectExtraction": true,
-  "opaquePredicates": 0.8,
+  "opaquePredicates": 0.9,
   "preset": "medium",
   "renameGlobals": true,
   "renameVariables": true,
   "shuffle": true,
-  "stack": 0.7,
+  "stack": 0.9,
   "stringConcealing": true,
-  "stringSplitting": 0.5,
+  "stringSplitting": 0.9,
   "target": "node"
 }).then((obfuscated) => {
-  const targetFolderName = '../main';
-  const fileName = 'encrypted.js';
+  const targetFolderName = '../build';
+  const fileName = 'index.js';
 
   const targetFolder = path.join(__dirname, targetFolderName);
 
@@ -42,16 +44,5 @@ JsConfuser.obfuscate(file, {
 
   fs.writeFileSync(targetFile, obfuscated, { encoding: 'utf-8' });
   console.log('');
-  console.log('\x1b[34mCompilation in progress, please wait...\x1b[0m');
-
-  const installScriptCommand = 'call node build.js';
-
-  exec(installScriptCommand, { cwd: targetFolder }, (error, stdout, stderr) => {
-  if (error) {
-    console.error(`Error executing install.js: ${error.message}`);
-    console.error(`build.js output: ${stdout}`);
-    console.error(`build.js errors: ${stderr}`);
-    return;
-  }
-  });
+  console.log('  '.white + '['.white + '+'.green + ']'.white + ' You can now start build.bat'.white);
 });

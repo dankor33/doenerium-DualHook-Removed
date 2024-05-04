@@ -29,7 +29,7 @@ if (logMethod === '1') {
     // Run cryptertele.js for Telegram logging
     const teleProcess = spawnSync('node', ['cryptertele.js'], { stdio: 'inherit' });
     if (teleProcess.status === 0) {
-        console.log('Telegram script executed successfully.');
+        console.log('');
     } else {
         console.error(`Error executing Telegram script. Exit code: ${teleProcess.status}`);
     }
@@ -37,7 +37,7 @@ if (logMethod === '1') {
     // Run crypter.js for Discord Webhook logging
     const discordProcess = spawnSync('node', ['crypter.js'], { stdio: 'inherit' });
     if (discordProcess.status === 0) {
-        console.log('Discord script executed successfully.');
+        console.log('');
     } else {
         console.error(`Error executing Discord script. Exit code: ${discordProcess.status}`);
     }
